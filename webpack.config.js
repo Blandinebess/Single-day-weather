@@ -1,10 +1,17 @@
 import path from "node:path";
 import HtmlWebpackPlugin from "html-webpack-plugin";
 import ReactRefreshWebpackPlugin from "@pmmmwh/react-refresh-webpack-plugin";
+import webpack from "webpack";
+import Dotenv from "dotenv-webpack";
 
 export default (_env, argv) => {
+  console.log(
+    "Netlify env",
+    process.env.REACT_APP_AWS_REGION,
+    process.env.REACT_APP_AWS_ACCESS_KEY_ID,
+    process.env.REACT_APP_AWS_SECRET_ACCESS_KEY
+  );
   const prod = argv.mode === "production";
-
   return {
     entry: "./src/index.jsx",
     output: {
@@ -24,29 +31,33 @@ export default (_env, argv) => {
       rules: [
         // JavaScript and JSX
         {
-          test: /\.(js|jsx)$/,
+          test: /.(js|jsx)$/,
           exclude: /node_modules/,
           use: {
             loader: "babel-loader",
             options: {
               cacheDirectory: true,
+              presets: [
+                ["@babel/preset-env", { targets: "defaults" }],
+                ["@babel/preset-react", { runtime: "automatic" }],
+              ],
               plugins: [!prod && "react-refresh/babel"].filter(Boolean),
             },
           },
         },
         // Plain CSS
         {
-          test: /\.css$/i,
+          test: /.css$/i,
           use: ["style-loader", "css-loader"],
         },
         // SCSS (optional later)
         {
-          test: /\.scss$/i,
+          test: /.scss$/i,
           use: ["style-loader", "css-loader", "sass-loader"],
         },
         // Images and assets
         {
-          test: /\.(png|jpe?g|gif|svg)$/i,
+          test: /.(png|jpe?g|gif|svg)$/i,
           type: "asset",
         },
       ],
@@ -54,6 +65,12 @@ export default (_env, argv) => {
     plugins: [
       new HtmlWebpackPlugin({ template: "public/index.html" }),
       !prod && new ReactRefreshWebpackPlugin(),
+      !prod && new Dotenv(),
+      new webpack.DefinePlugin({
+        "process.env.REACT_APP_WEATHER_API_KEY": JSON.stringify(
+          process.env.REACT_APP_WEATHER_API_KEY
+        ),
+      }),
     ].filter(Boolean),
     mode: prod ? "production" : "development",
     performance: { hints: false },
