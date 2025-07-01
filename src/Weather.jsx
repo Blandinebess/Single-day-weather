@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import Forecast from './Forecast';
+import Forecast from './components/Forecast.jsx';
 
 export default function Weather() {
 const [weatherData, setWeatherData] = useState(null);
